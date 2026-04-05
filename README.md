@@ -1,6 +1,6 @@
 # 🌍 DisasterTrack
 
-Real-time natural disaster tracking on a 3D globe, powered by NASA's [EONET API](https://eonet.gsfc.nasa.gov/).
+Real-time natural disaster tracking on a 3D globe, powered by multiple data sources: NASA EONET, USGS Earthquakes, NASA FIRMS wildfires, and ReliefWeb humanitarian alerts.
 
 ![DisasterTrack Screenshot](screenshot.png)
 
@@ -29,6 +29,12 @@ cd disastertrack
 # Install dependencies
 npm install
 
+# (Optional) Set up NASA FIRMS wildfire data
+# Get a free API key at https://firms.modaps.eosdis.nasa.gov/api/area/
+cp .env.example .env
+# Edit .env and add your FIRMS MAP_KEY
+# Without this key, FIRMS data will be silently skipped — everything else works fine.
+
 # Start the dev server
 npm run dev
 ```
@@ -54,15 +60,16 @@ npm run preview
 - **Responsive** — sidebar collapses to bottom sheet on mobile
 - **Dark Space Theme** — night Earth texture with atmospheric glow
 
-## API
+## Data Sources
 
-This project uses **NASA's Earth Observatory Natural Event Tracker (EONET) API v3**.
+| Source | What it provides | Auth | Refresh interval |
+|--------|-----------------|------|-----------------|
+| **NASA EONET v3** | Multi-category natural events (storms, volcanoes, ice, etc.) | None | 10 min |
+| **USGS Earthquake API** | Earthquakes M2.5+, with magnitude/depth/tsunami flags | None | 5 min |
+| **NASA FIRMS** | Active wildfire hotspots from VIIRS satellite | Free API key | 15 min |
+| **ReliefWeb** | UN-level humanitarian disaster declarations | None | 60 min |
 
-- **Base URL:** `https://eonet.gsfc.nasa.gov/api/v3`
-- **Auth:** None required (public API)
-- **Docs:** [eonet.gsfc.nasa.gov/docs/v3](https://eonet.gsfc.nasa.gov/docs/v3)
-
-No backend or API keys needed. All requests go directly from the browser to NASA's servers.
+All requests go directly from the browser — no backend needed. Only FIRMS requires an API key (free, takes 10 seconds to get).
 
 ## Project Structure
 
@@ -86,9 +93,11 @@ src/
 
 ## Attribution
 
-Data provided by **NASA's Earth Observatory Natural Event Tracker (EONET)**, a service of the [NASA Goddard Space Flight Center](https://www.nasa.gov/goddard). Globe imagery from [three-globe](https://github.com/vasturiano/three-globe).
-
-> EONET metadata is subject to NASA's [disclaimer](https://eonet.gsfc.nasa.gov/what-is-eonet#disclaimer).
+- **NASA EONET** — Earth Observatory Natural Event Tracker, [NASA Goddard Space Flight Center](https://www.nasa.gov/goddard)
+- **USGS** — United States Geological Survey [Earthquake Hazards Program](https://earthquake.usgs.gov/)
+- **NASA FIRMS** — Fire Information for Resource Management System, [NASA EOSDIS](https://firms.modaps.eosdis.nasa.gov/)
+- **ReliefWeb** — [OCHA / United Nations](https://reliefweb.int/)
+- Globe imagery from [three-globe](https://github.com/vasturiano/three-globe)
 
 ## Contributing
 
@@ -102,8 +111,6 @@ Contributions are welcome!
 
 ### Ideas for contribution
 
-- USGS earthquake API integration for richer seismic data
-- Event clustering for dense areas
 - Hurricane path visualization (multi-geometry tracks)
 - Historical event timeline view
 - Satellite imagery overlay via EONET Layers API

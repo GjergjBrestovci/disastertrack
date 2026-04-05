@@ -1,13 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
 import Globe from 'globe.gl';
-import type { EONETEvent } from '../../types/eonet';
-import { getCategoryColor, getEventCoords } from '../../lib/utils';
+import type { NormalizedDisaster } from '../../types/disaster';
 
 interface UseGlobeOptions {
   containerRef: React.RefObject<HTMLDivElement | null>;
-  events: EONETEvent[];
-  onPointClick: (event: EONETEvent) => void;
-  onPointHover: (event: EONETEvent | null, mousePos: { x: number; y: number }) => void;
+  events: NormalizedDisaster[];
+  onPointClick: (event: NormalizedDisaster) => void;
+  onPointHover: (event: NormalizedDisaster | null, mousePos: { x: number; y: number }) => void;
 }
 
 export function useGlobe({ containerRef, events, onPointClick, onPointHover }: UseGlobeOptions) {
@@ -77,40 +76,39 @@ export function useGlobe({ containerRef, events, onPointClick, onPointHover }: U
 
     globe
       .pointsData(events)
-      .pointLat((d: object) => {
-        const coords = getEventCoords(d as EONETEvent);
-        return coords?.lat ?? 0;
-      })
-      .pointLng((d: object) => {
-        const coords = getEventCoords(d as EONETEvent);
-        return coords?.lng ?? 0;
-      })
-      .pointColor((d: object) => getCategoryColor(d as EONETEvent))
-      .pointRadius((d: object) => {
-        const event = d as EONETEvent;
-        return event.categories[0]?.id === 'earthquakes' ? 0.5 : 0.35;
-      })
+      .pointLat((d: object) => (d as NormalizedDisaster).lat)
+      .pointLng((d: object) => (d as NormalizedDisaster).lng)
+      .pointColor((d: object) => (d as NormalizedDisaster).color)
+      .pointRadius((d: object) => (d as NormalizedDisaster).pinRadius)
       .onPointClick((point: object) => {
-        onPointClick(point as EONETEvent);
+        onPointClick(point as NormalizedDisaster);
       })
       .onPointHover((point: object | null, _prev: object | null, ev: MouseEvent) => {
         onPointHover(
-          point as EONETEvent | null,
-          { x: ev?.clientX ?? 0, y: ev?.clientY ?? 0 }
+          point as NormalizedDisaster | null,
+          { x: ev?.clientX ?? 0, y: ev?.clientY ?? 0 },
         );
       });
+
+    // Tsunami ring layer
+    const tsunamiEvents = events.filter((d) => d.meta?.tsunami);
+    globe
+      .ringsData(tsunamiEvents)
+      .ringLat((d: object) => (d as NormalizedDisaster).lat)
+      .ringLng((d: object) => (d as NormalizedDisaster).lng)
+      .ringColor(() => '#00BFFF')
+      .ringMaxRadius(3)
+      .ringPropagationSpeed(1.5)
+      .ringRepeatPeriod(1200);
   }, [events, onPointClick, onPointHover]);
 
-  const flyTo = useCallback((event: EONETEvent) => {
+  const flyTo = useCallback((event: NormalizedDisaster) => {
     const globe = globeRef.current;
     if (!globe) return;
 
-    const coords = getEventCoords(event);
-    if (!coords) return;
-
     globe.pointOfView(
-      { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-      1000
+      { lat: event.lat, lng: event.lng, altitude: 1.5 },
+      1000,
     );
   }, []);
 

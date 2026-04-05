@@ -1,5 +1,5 @@
 declare module 'globe.gl' {
-  import type { Object3D, Scene, Camera, WebGLRenderer } from 'three';
+  import type { Scene, Camera, WebGLRenderer } from 'three';
 
   interface GlobeControls {
     autoRotate: boolean;
@@ -26,14 +26,23 @@ declare module 'globe.gl' {
 
     // Points layer
     pointsData(data: object[]): GlobeInstance;
-    pointLat(fn: (d: object) => number): GlobeInstance;
-    pointLng(fn: (d: object) => number): GlobeInstance;
-    pointColor(fn: (d: object) => string): GlobeInstance;
+    pointLat(fn: string | ((d: object) => number)): GlobeInstance;
+    pointLng(fn: string | ((d: object) => number)): GlobeInstance;
+    pointColor(fn: string | ((d: object) => string)): GlobeInstance;
     pointAltitude(alt: number | ((d: object) => number)): GlobeInstance;
     pointRadius(radius: number | ((d: object) => number)): GlobeInstance;
     pointsMerge(merge: boolean): GlobeInstance;
     onPointClick(fn: (point: object, event: MouseEvent) => void): GlobeInstance;
     onPointHover(fn: (point: object | null, prevPoint: object | null, event: MouseEvent) => void): GlobeInstance;
+
+    // Rings layer
+    ringsData(data: object[]): GlobeInstance;
+    ringLat(fn: string | ((d: object) => number)): GlobeInstance;
+    ringLng(fn: string | ((d: object) => number)): GlobeInstance;
+    ringColor(fn: string | (() => string) | ((d: object) => string)): GlobeInstance;
+    ringMaxRadius(r: number | ((d: object) => number)): GlobeInstance;
+    ringPropagationSpeed(s: number | ((d: object) => number)): GlobeInstance;
+    ringRepeatPeriod(ms: number | ((d: object) => number)): GlobeInstance;
 
     // Camera
     pointOfView(pov: { lat?: number; lng?: number; altitude?: number }, transitionMs?: number): GlobeInstance;

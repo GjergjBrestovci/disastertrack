@@ -1,12 +1,12 @@
 import { EventListItem } from './EventListItem';
-import type { EONETEvent } from '../../types/eonet';
+import type { NormalizedDisaster } from '../../types/disaster';
 
 interface EventListProps {
-  events: EONETEvent[];
+  events: NormalizedDisaster[];
   isLoading: boolean;
   isError: boolean;
   selectedEventId: string | null;
-  onEventSelect: (event: EONETEvent) => void;
+  onEventSelect: (event: NormalizedDisaster) => void;
   onRetry: () => void;
 }
 
@@ -39,7 +39,7 @@ export function EventList({
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <span className="text-2xl mb-2">⚠️</span>
         <p className="text-sm text-[var(--text-muted)] mb-3">
-          Failed to load events from NASA EONET.
+          Failed to load disaster events.
         </p>
         <button
           onClick={onRetry}
@@ -60,7 +60,7 @@ export function EventList({
           No events match your filters.
         </p>
         <p className="text-xs text-[var(--text-faint)] mt-1">
-          Try a wider time range or different categories.
+          Try a wider time range or enable more data sources.
         </p>
       </div>
     );

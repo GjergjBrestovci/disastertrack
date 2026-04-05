@@ -1,21 +1,22 @@
 import { formatDistanceToNow } from 'date-fns';
-import { CATEGORY_CONFIG } from '../../constants/categories';
-import { countByCategory } from '../../lib/utils';
-import type { EONETEvent } from '../../types/eonet';
+import { SOURCE_CONFIGS } from '../../types/disaster';
+import type { SourceStatus } from '../../hooks/useAllDisasters';
 
 interface StatsBarProps {
-  events: EONETEvent[];
+  totalCount: number;
+  sourceStatuses: SourceStatus[];
   dataUpdatedAt: number;
   isRefetching: boolean;
   onRefresh: () => void;
 }
 
-export function StatsBar({ events, dataUpdatedAt, isRefetching, onRefresh }: StatsBarProps) {
-  const counts = countByCategory(events);
-  const topCategories = Object.entries(counts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 6);
-
+export function StatsBar({
+  totalCount,
+  sourceStatuses,
+  dataUpdatedAt,
+  isRefetching,
+  onRefresh,
+}: StatsBarProps) {
   const lastUpdated = dataUpdatedAt
     ? formatDistanceToNow(new Date(dataUpdatedAt), { addSuffix: true })
     : 'never';
@@ -50,28 +51,31 @@ export function StatsBar({ events, dataUpdatedAt, isRefetching, onRefresh }: Sta
 
       <div className="w-px h-5 bg-[var(--border)] hidden md:block" />
 
-      {/* Category counts */}
+      {/* Per-source counts */}
       <div className="hidden md:flex items-center gap-3 overflow-x-auto">
-        {topCategories.map(([catId, count]) => {
-          const config = CATEGORY_CONFIG[catId];
-          if (!config) return null;
+        {sourceStatuses.map((status) => {
+          const cfg = SOURCE_CONFIGS.find((s) => s.key === status.source);
+          if (!cfg) return null;
           return (
-            <div key={catId} className="flex items-center gap-1 shrink-0">
-              <span className="text-sm">{config.icon}</span>
-              <span className="text-xs font-mono font-semibold" style={{ color: config.color }}>
-                {count}
+            <div key={status.source} className="flex items-center gap-1 shrink-0">
+              <span className="text-sm">{cfg.icon}</span>
+              <span className="text-[10px] font-mono text-[var(--text-faint)] uppercase">
+                {cfg.label}:
+              </span>
+              <span className="text-xs font-mono font-semibold" style={{ color: cfg.color }}>
+                {status.isLoading ? '...' : status.count.toLocaleString()}
               </span>
             </div>
           );
         })}
         <span className="text-xs font-mono text-[var(--text-faint)]">
-          {events.length} total
+          {totalCount.toLocaleString()} total
         </span>
       </div>
 
       {/* Mobile total */}
       <div className="md:hidden text-xs font-mono text-[var(--text-muted)]">
-        {events.length} events
+        {totalCount.toLocaleString()} events
       </div>
 
       <div className="flex-1" />

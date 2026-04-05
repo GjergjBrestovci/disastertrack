@@ -2,33 +2,33 @@ import { useRef, useState, useCallback } from 'react';
 import { useGlobe } from './useGlobe';
 import { Tooltip } from '../ui/Tooltip';
 import { Spinner } from '../ui/Spinner';
-import type { EONETEvent } from '../../types/eonet';
+import type { NormalizedDisaster } from '../../types/disaster';
 
 interface GlobeContainerProps {
-  events: EONETEvent[];
+  events: NormalizedDisaster[];
   isLoading: boolean;
-  onEventSelect: (event: EONETEvent) => void;
-  onFlyToRef: (fn: (event: EONETEvent) => void) => void;
+  onEventSelect: (event: NormalizedDisaster) => void;
+  onFlyToRef: (fn: (event: NormalizedDisaster) => void) => void;
 }
 
 export function GlobeContainer({ events, isLoading, onEventSelect, onFlyToRef }: GlobeContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [hoveredEvent, setHoveredEvent] = useState<EONETEvent | null>(null);
+  const [hoveredEvent, setHoveredEvent] = useState<NormalizedDisaster | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const handlePointClick = useCallback(
-    (event: EONETEvent) => {
+    (event: NormalizedDisaster) => {
       onEventSelect(event);
     },
-    [onEventSelect]
+    [onEventSelect],
   );
 
   const handlePointHover = useCallback(
-    (event: EONETEvent | null, pos: { x: number; y: number }) => {
+    (event: NormalizedDisaster | null, pos: { x: number; y: number }) => {
       setHoveredEvent(event);
       setMousePos(pos);
     },
-    []
+    [],
   );
 
   const { flyTo } = useGlobe({

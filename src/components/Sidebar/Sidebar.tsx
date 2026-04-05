@@ -1,19 +1,24 @@
+import { SourceFilter } from './SourceFilter';
 import { CategoryFilter } from '../Filters/CategoryFilter';
 import { EventList } from './EventList';
 import { TIME_RANGES } from '../../constants/categories';
-import type { EONETEvent } from '../../types/eonet';
+import type { NormalizedDisaster, DisasterSource } from '../../types/disaster';
+import type { SourceStatus } from '../../hooks/useAllDisasters';
 
 interface SidebarProps {
-  events: EONETEvent[];
+  events: NormalizedDisaster[];
   isLoading: boolean;
   isError: boolean;
   selectedEventId: string | null;
   activeCategories: string[];
   activeDays: number;
+  enabledSources: ReadonlySet<DisasterSource>;
+  sourceStatuses: SourceStatus[];
+  onToggleSource: (source: DisasterSource) => void;
   onToggleCategory: (categoryId: string) => void;
   onSelectAllCategories: () => void;
   onChangeDays: (days: number) => void;
-  onEventSelect: (event: EONETEvent) => void;
+  onEventSelect: (event: NormalizedDisaster) => void;
   onRetry: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -26,6 +31,9 @@ export function Sidebar({
   selectedEventId,
   activeCategories,
   activeDays,
+  enabledSources,
+  sourceStatuses,
+  onToggleSource,
   onToggleCategory,
   onSelectAllCategories,
   onChangeDays,
@@ -67,6 +75,12 @@ export function Sidebar({
 
         {/* Filters section */}
         <div className="p-4 space-y-4 border-b border-[var(--border)]">
+          <SourceFilter
+            enabledSources={enabledSources}
+            onToggle={onToggleSource}
+            sourceStatuses={sourceStatuses}
+          />
+
           <CategoryFilter
             activeCategories={activeCategories}
             onToggle={onToggleCategory}
@@ -103,7 +117,7 @@ export function Sidebar({
             Events
           </span>
           <span className="text-[11px] font-mono font-medium text-[var(--text-muted)]">
-            {isLoading ? '...' : events.length}
+            {isLoading ? '...' : events.length.toLocaleString()}
           </span>
         </div>
 

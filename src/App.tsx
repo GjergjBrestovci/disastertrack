@@ -3,31 +3,48 @@ import { GlobeContainer } from './components/Globe/GlobeContainer';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { EventDetailPanel } from './components/EventPanel/EventDetailPanel';
 import { StatsBar } from './components/Stats/StatsBar';
-import { useEONETEvents } from './hooks/useEONETEvents';
-import type { EONETEvent } from './types/eonet';
+import { useAllDisasters } from './hooks/useAllDisasters';
+import type { NormalizedDisaster, DisasterSource } from './types/disaster';
+
+const ALL_SOURCES: DisasterSource[] = ['eonet', 'usgs', 'firms', 'reliefweb'];
 
 export default function App() {
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [activeDays, setActiveDays] = useState(30);
-  const [selectedEvent, setSelectedEvent] = useState<EONETEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<NormalizedDisaster | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [enabledSources, setEnabledSources] = useState<ReadonlySet<DisasterSource>>(
+    () => new Set(ALL_SOURCES),
+  );
 
-  const flyToRef = useRef<((event: EONETEvent) => void) | null>(null);
+  const flyToRef = useRef<((event: NormalizedDisaster) => void) | null>(null);
 
   const {
-    data: events = [],
+    data: events,
     isLoading,
-    isError,
-    dataUpdatedAt,
     isRefetching,
-    refetch,
-  } = useEONETEvents(activeDays, activeCategories);
+    sourceStatuses,
+    dataUpdatedAt,
+    refetchAll,
+  } = useAllDisasters(activeDays, activeCategories, enabledSources);
+
+  const handleToggleSource = useCallback((source: DisasterSource) => {
+    setEnabledSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) {
+        next.delete(source);
+      } else {
+        next.add(source);
+      }
+      return next;
+    });
+  }, []);
 
   const handleToggleCategory = useCallback((categoryId: string) => {
     setActiveCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((c) => c !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   }, []);
 
@@ -35,7 +52,7 @@ export default function App() {
     setActiveCategories([]);
   }, []);
 
-  const handleEventSelect = useCallback((event: EONETEvent) => {
+  const handleEventSelect = useCallback((event: NormalizedDisaster) => {
     setSelectedEvent(event);
     flyToRef.current?.(event);
     setSidebarOpen(false);
@@ -45,17 +62,20 @@ export default function App() {
     setSelectedEvent(null);
   }, []);
 
-  const handleSetFlyTo = useCallback((fn: (event: EONETEvent) => void) => {
+  const handleSetFlyTo = useCallback((fn: (event: NormalizedDisaster) => void) => {
     flyToRef.current = fn;
   }, []);
+
+  const allErrors = sourceStatuses.every((s) => s.isError);
 
   return (
     <div className="fixed inset-0 bg-bg overflow-hidden">
       <StatsBar
-        events={events}
+        totalCount={events.length}
+        sourceStatuses={sourceStatuses}
         dataUpdatedAt={dataUpdatedAt}
         isRefetching={isRefetching}
-        onRefresh={() => refetch()}
+        onRefresh={refetchAll}
       />
 
       {/* Mobile menu toggle */}
@@ -85,15 +105,18 @@ export default function App() {
       <Sidebar
         events={events}
         isLoading={isLoading}
-        isError={isError}
+        isError={allErrors}
         selectedEventId={selectedEvent?.id ?? null}
         activeCategories={activeCategories}
         activeDays={activeDays}
+        enabledSources={enabledSources}
+        sourceStatuses={sourceStatuses}
+        onToggleSource={handleToggleSource}
         onToggleCategory={handleToggleCategory}
         onSelectAllCategories={handleSelectAllCategories}
         onChangeDays={setActiveDays}
         onEventSelect={handleEventSelect}
-        onRetry={() => refetch()}
+        onRetry={refetchAll}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

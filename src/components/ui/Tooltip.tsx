@@ -1,16 +1,16 @@
-import type { EONETEvent } from '../../types/eonet';
-import { getCategoryConfig, formatRelativeDate } from '../../lib/utils';
+import type { NormalizedDisaster } from '../../types/disaster';
+import { SOURCE_CONFIGS } from '../../types/disaster';
+import { formatRelativeDate } from '../../lib/utils';
 
 interface TooltipProps {
-  event: EONETEvent | null;
+  event: NormalizedDisaster | null;
   position: { x: number; y: number };
 }
 
 export function Tooltip({ event, position }: TooltipProps) {
   if (!event) return null;
 
-  const config = getCategoryConfig(event);
-  const date = event.geometry[0]?.date;
+  const sourceCfg = SOURCE_CONFIGS.find((s) => s.key === event.source);
 
   return (
     <div
@@ -26,18 +26,27 @@ export function Tooltip({ event, position }: TooltipProps) {
         style={{
           background: 'var(--bg-raised)',
           border: '1px solid var(--border)',
-          borderLeft: `3px solid ${config.color}`,
+          borderLeft: `3px solid ${event.color}`,
         }}
       >
         <div className="flex items-center gap-1.5 font-medium text-[var(--text)]">
-          <span>{config.icon}</span>
           <span className="truncate">{event.title}</span>
         </div>
-        {date && (
-          <div className="text-xs text-[var(--text-muted)] mt-0.5 font-mono">
-            {formatRelativeDate(date)}
-          </div>
-        )}
+        <div className="flex items-center gap-2 mt-0.5">
+          {event.date && (
+            <span className="text-xs text-[var(--text-muted)] font-mono">
+              {formatRelativeDate(event.date)}
+            </span>
+          )}
+          {sourceCfg && (
+            <>
+              <span className="text-[var(--text-faint)]">&middot;</span>
+              <span className="text-[10px] font-mono" style={{ color: sourceCfg.color }}>
+                {sourceCfg.label}
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
