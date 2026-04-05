@@ -1,0 +1,10 @@
+{
+  "buildCommand": "tsc && vite build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/firms", "destination": "/api/firms" },
+    { "source": "/api/gdacs", "destination": "/api/gdacs" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

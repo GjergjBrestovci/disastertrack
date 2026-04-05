@@ -12,11 +12,9 @@ async function fetchGDACSDisasters(days: number): Promise<NormalizedDisaster[]> 
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   const { data } = await axios.get<GDACSResponse>(
-    '/api/gdacs/api/events/geteventlist/SEARCH',
+    '/api/gdacs',
     {
       params: {
-        eventlist: 'EQ,TC,FL,VO,DR,WF',
-        alertlevel: 'Green;Orange;Red',
         fromDate: fmt(start),
         toDate: fmt(end),
         limit: 100,
