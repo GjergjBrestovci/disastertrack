@@ -5,7 +5,7 @@ const SOURCE_LABELS: Record<DisasterSource, string> = {
   eonet: 'NASA EONET',
   usgs: 'USGS Earthquakes',
   firms: 'NASA FIRMS',
-  reliefweb: 'ReliefWeb / UN',
+  gdacs: 'GDACS',
 };
 
 interface SourceBadgeProps {

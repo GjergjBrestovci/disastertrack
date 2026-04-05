@@ -2,7 +2,7 @@ import type { EONETEvent } from './eonet';
 
 // ── Source & Category unions ────────────────────────────────────────
 
-export type DisasterSource = 'eonet' | 'usgs' | 'firms' | 'reliefweb';
+export type DisasterSource = 'eonet' | 'usgs' | 'firms' | 'gdacs';
 
 export type DisasterCategory =
   | 'wildfire'
@@ -35,7 +35,7 @@ export interface NormalizedDisaster {
   intensity?: number;
   description?: string;
   externalUrl?: string;
-  raw: EONETEvent | USGSFeature | FIRMSCluster | ReliefWebDisaster;
+  raw: EONETEvent | USGSFeature | FIRMSCluster | GDACSFeature;
   meta?: {
     magnitude?: number;
     depth?: number;
@@ -45,6 +45,8 @@ export interface NormalizedDisaster {
     fireCount?: number;
     country?: string;
     disasterType?: string;
+    alertLevel?: string;
+    severity?: string;
   };
 }
 
@@ -99,32 +101,47 @@ export interface FIRMSCluster extends FIRMSPoint {
   count: number;
 }
 
-// ── ReliefWeb types ─────────────────────────────────────────────────
+// ── GDACS types ─────────────────────────────────────────────────────
 
-export interface ReliefWebDisasterField {
+export interface GDACSFeatureProperties {
+  eventtype: string;
+  eventid: number;
+  episodeid: number;
   name: string;
-  description?: string;
-  date: { created: string };
-  type: Array<{ id: number; name: string }>;
-  country: Array<{
-    id: number;
-    name: string;
-    location: { lat: number; lon: number };
-    iso3: string;
-  }>;
-  status: string;
-  url: string;
+  description: string;
+  htmldescription: string;
+  alertlevel: string; // "Green" | "Orange" | "Red"
+  alertscore: number;
+  episodealertlevel: string;
+  country: string;
+  fromdate: string;
+  todate: string;
+  iso3: string;
+  source: string;
+  severitydata: {
+    severity: number;
+    severitytext: string;
+    severityunit: string;
+  };
+  url: {
+    geometry: string;
+    report: string;
+    details: string;
+  };
 }
 
-export interface ReliefWebDisaster {
-  id: number;
-  fields: ReliefWebDisasterField;
+export interface GDACSFeature {
+  type: 'Feature';
+  geometry: {
+    type: 'Point';
+    coordinates: [number, number]; // [lng, lat]
+  };
+  properties: GDACSFeatureProperties;
 }
 
-export interface ReliefWebResponse {
-  data: ReliefWebDisaster[];
-  count: number;
-  total: number;
+export interface GDACSResponse {
+  type: 'FeatureCollection';
+  features: GDACSFeature[];
 }
 
 // ── Source config ────────────────────────────────────────────────────
@@ -140,5 +157,5 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
   { key: 'eonet', label: 'NASA EONET', color: '#2EC4C4', icon: '\u{1F6F0}\uFE0F' },
   { key: 'usgs', label: 'USGS', color: '#EF4444', icon: '\u{1F4E1}' },
   { key: 'firms', label: 'NASA FIRMS', color: '#FF6B00', icon: '\u{1F525}' },
-  { key: 'reliefweb', label: 'ReliefWeb', color: '#8B5CF6', icon: '\u{1F198}' },
+  { key: 'gdacs', label: 'GDACS', color: '#8B5CF6', icon: '\u{1F198}' },
 ];

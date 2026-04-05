@@ -90,14 +90,17 @@ function EventDetailContent({ event, onClose }: { event: NormalizedDisaster; onC
           </>
         )}
 
-        {/* ReliefWeb-specific */}
-        {event.source === 'reliefweb' && (
+        {/* GDACS-specific */}
+        {event.source === 'gdacs' && (
           <>
+            {event.meta?.alertLevel && (
+              <DetailRow label="Alert Level" value={event.meta.alertLevel} />
+            )}
+            {event.meta?.severity && (
+              <DetailRow label="Severity" value={event.meta.severity} />
+            )}
             {event.meta?.country && (
               <DetailRow label="Country" value={event.meta.country} />
-            )}
-            {event.meta?.disasterType && (
-              <DetailRow label="Disaster Type" value={event.meta.disasterType} />
             )}
           </>
         )}

@@ -3,7 +3,7 @@ import type { DisasterSource, NormalizedDisaster } from '../types/disaster';
 import { useEONETEvents } from './useEONETEvents';
 import { useUSGSEarthquakes } from './useUSGSEarthquakes';
 import { useFIRMSWildfires } from './useFIRMSWildfires';
-import { useReliefWebDisasters } from './useReliefWebDisasters';
+import { useGDACSDisasters } from './useGDACSDisasters';
 
 export interface SourceStatus {
   source: DisasterSource;
@@ -21,22 +21,31 @@ export function useAllDisasters(
   const eonet = useEONETEvents(days, categories);
   const usgs = useUSGSEarthquakes(days);
   const firms = useFIRMSWildfires(days);
-  const reliefweb = useReliefWebDisasters();
+  const gdacs = useGDACSDisasters(days);
 
   const allData = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffTime = cutoff.getTime();
+
     const result: NormalizedDisaster[] = [];
     if (enabledSources.has('eonet') && eonet.data) result.push(...eonet.data);
     if (enabledSources.has('usgs') && usgs.data) result.push(...usgs.data);
     if (enabledSources.has('firms') && firms.data) result.push(...firms.data);
-    if (enabledSources.has('reliefweb') && reliefweb.data) result.push(...reliefweb.data);
-    return result;
-  }, [eonet.data, usgs.data, firms.data, reliefweb.data, enabledSources]);
+    if (enabledSources.has('gdacs') && gdacs.data) result.push(...gdacs.data);
+
+    return result.filter((d) => {
+      if (!d.date) return true;
+      const t = new Date(d.date).getTime();
+      return !isNaN(t) && t >= cutoffTime;
+    });
+  }, [eonet.data, usgs.data, firms.data, gdacs.data, enabledSources, days]);
 
   const isLoading =
-    eonet.isLoading || usgs.isLoading || firms.isLoading || reliefweb.isLoading;
+    eonet.isLoading || usgs.isLoading || firms.isLoading || gdacs.isLoading;
 
   const isRefetching =
-    eonet.isRefetching || usgs.isRefetching || firms.isRefetching || reliefweb.isRefetching;
+    eonet.isRefetching || usgs.isRefetching || firms.isRefetching || gdacs.isRefetching;
 
   const sourceStatuses: SourceStatus[] = useMemo(
     () => [
@@ -62,18 +71,18 @@ export function useAllDisasters(
         refetch: () => { firms.refetch(); },
       },
       {
-        source: 'reliefweb' as const,
-        isLoading: reliefweb.isLoading,
-        isError: reliefweb.isError,
-        count: reliefweb.data?.length ?? 0,
-        refetch: () => { reliefweb.refetch(); },
+        source: 'gdacs' as const,
+        isLoading: gdacs.isLoading,
+        isError: gdacs.isError,
+        count: gdacs.data?.length ?? 0,
+        refetch: () => { gdacs.refetch(); },
       },
     ],
     [
       eonet.isLoading, eonet.isError, eonet.data, eonet.refetch,
       usgs.isLoading, usgs.isError, usgs.data, usgs.refetch,
       firms.isLoading, firms.isError, firms.data, firms.refetch,
-      reliefweb.isLoading, reliefweb.isError, reliefweb.data, reliefweb.refetch,
+      gdacs.isLoading, gdacs.isError, gdacs.data, gdacs.refetch,
     ],
   );
 
@@ -81,14 +90,14 @@ export function useAllDisasters(
     eonet.dataUpdatedAt ?? 0,
     usgs.dataUpdatedAt ?? 0,
     firms.dataUpdatedAt ?? 0,
-    reliefweb.dataUpdatedAt ?? 0,
+    gdacs.dataUpdatedAt ?? 0,
   );
 
   const refetchAll = () => {
     eonet.refetch();
     usgs.refetch();
     firms.refetch();
-    reliefweb.refetch();
+    gdacs.refetch();
   };
 
   return {

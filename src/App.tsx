@@ -6,7 +6,7 @@ import { StatsBar } from './components/Stats/StatsBar';
 import { useAllDisasters } from './hooks/useAllDisasters';
 import type { NormalizedDisaster, DisasterSource } from './types/disaster';
 
-const ALL_SOURCES: DisasterSource[] = ['eonet', 'usgs', 'firms', 'reliefweb'];
+const ALL_SOURCES: DisasterSource[] = ['eonet', 'usgs', 'firms', 'gdacs'];
 
 export default function App() {
   const [activeCategories, setActiveCategories] = useState<string[]>([]);

@@ -4,7 +4,7 @@ import type {
   DisasterCategory,
   USGSFeature,
   FIRMSCluster,
-  ReliefWebDisaster,
+  GDACSFeature,
 } from '../types/disaster';
 import { getEventCoords, getCategoryColor } from './utils';
 
@@ -97,7 +97,7 @@ function getFireColor(frp: number): string {
 
 export function normalizeFIRMS(cluster: FIRMSCluster): NormalizedDisaster {
   return {
-    id: `firms_${cluster.lat.toFixed(2)}_${cluster.lng.toFixed(2)}`,
+    id: `firms_${cluster.lat.toFixed(4)}_${cluster.lng.toFixed(4)}`,
     source: 'firms',
     category: 'wildfire',
     title: `Wildfire cluster (${cluster.count} detection${cluster.count > 1 ? 's' : ''})`,
@@ -115,50 +115,53 @@ export function normalizeFIRMS(cluster: FIRMSCluster): NormalizedDisaster {
   };
 }
 
-// ── ReliefWeb ───────────────────────────────────────────────────────
+// ── GDACS ───────────────────────────────────────────────────────────
 
-const RELIEFWEB_TYPE_MAP: Record<string, DisasterCategory> = {
-  Earthquake: 'earthquake',
-  Flood: 'flood',
-  'Tropical Cyclone': 'storm',
-  Storm: 'storm',
-  Volcano: 'volcano',
-  Drought: 'drought',
-  Wildfire: 'wildfire',
-  Landslide: 'landslide',
-  'Cold Wave': 'temperature',
-  'Heat Wave': 'temperature',
-  Epidemic: 'humanitarian',
-  'Insect Infestation': 'humanitarian',
-  'Complex Emergency': 'humanitarian',
+const GDACS_TYPE_MAP: Record<string, DisasterCategory> = {
+  EQ: 'earthquake',
+  TC: 'storm',
+  FL: 'flood',
+  VO: 'volcano',
+  DR: 'drought',
+  WF: 'wildfire',
 };
 
-export function normalizeReliefWeb(
-  disaster: ReliefWebDisaster,
-): NormalizedDisaster | null {
-  const f = disaster.fields;
-  const country = f.country?.[0];
-  if (!country?.location) return null;
+const GDACS_ALERT_COLORS: Record<string, string> = {
+  Red: '#EF4444',
+  Orange: '#F97316',
+  Green: '#22C55E',
+};
 
-  const typeName = f.type?.[0]?.name ?? '';
-  const category: DisasterCategory = RELIEFWEB_TYPE_MAP[typeName] ?? 'humanitarian';
+export function normalizeGDACS(feature: GDACSFeature): NormalizedDisaster | null {
+  const p = feature.properties;
+  const coords = feature.geometry?.coordinates;
+  if (!coords || coords.length < 2) return null;
+
+  const category: DisasterCategory = GDACS_TYPE_MAP[p.eventtype] ?? 'other';
+  const alertLevel = p.alertlevel ?? 'Green';
+  const color = GDACS_ALERT_COLORS[alertLevel] ?? '#8B5CF6';
+
+  const radiusMap: Record<string, number> = { Red: 0.55, Orange: 0.45, Green: 0.35 };
+  const pinRadius = radiusMap[alertLevel] ?? 0.35;
 
   return {
-    id: `reliefweb_${disaster.id}`,
-    source: 'reliefweb',
+    id: `gdacs_${p.eventtype}_${p.eventid}`,
+    source: 'gdacs',
     category,
-    title: f.name,
-    lat: country.location.lat,
-    lng: country.location.lon,
-    date: f.date?.created ?? '',
-    color: '#8B5CF6',
-    pinRadius: 0.45,
-    description: f.description,
-    externalUrl: f.url,
-    raw: disaster,
+    title: p.name,
+    lat: coords[1],
+    lng: coords[0],
+    date: p.fromdate ? new Date(p.fromdate).toISOString() : '',
+    color,
+    pinRadius,
+    description: p.description,
+    externalUrl: p.url?.report,
+    raw: feature,
     meta: {
-      country: country.name,
-      disasterType: typeName,
+      country: p.country,
+      disasterType: p.eventtype,
+      alertLevel,
+      severity: p.severitydata?.severitytext,
     },
   };
 }

@@ -20,7 +20,7 @@ export function parseFIRMSCSV(csvText: string): FIRMSPoint[] {
       const frp = parseFloat(row.frp);
       const confidence = row.confidence;
 
-      if (isNaN(lat) || isNaN(lng) || confidence === 'low') continue;
+      if (isNaN(lat) || isNaN(lng) || confidence === 'low' || confidence === 'l') continue;
 
       results.push({
         lat,

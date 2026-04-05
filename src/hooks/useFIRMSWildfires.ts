@@ -10,8 +10,7 @@ function mapDaysToFIRMS(days: number): number {
   if (days <= 1) return 1;
   if (days <= 2) return 2;
   if (days <= 3) return 3;
-  if (days <= 7) return 7;
-  return 10;
+  return 5;
 }
 
 async function fetchFIRMSWildfires(days: number): Promise<NormalizedDisaster[]> {
@@ -19,8 +18,8 @@ async function fetchFIRMSWildfires(days: number): Promise<NormalizedDisaster[]> 
 
   const firmsDays = mapDaysToFIRMS(days);
   const { data } = await axios.get<string>(
-    `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${FIRMS_MAP_KEY}/VIIRS_SNPP_NRT/world/${firmsDays}`,
-    { timeout: 30000 },
+    `/api/firms/csv/${FIRMS_MAP_KEY}/VIIRS_SNPP_NRT/world/${firmsDays}`,
+    { timeout: 30000, responseType: 'text' },
   );
 
   const points = parseFIRMSCSV(data);
