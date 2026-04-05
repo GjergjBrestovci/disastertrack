@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #080C14;
+  --bg-raised: #0D1320;
+  --bg-panel: rgba(13, 19, 32, 0.92);
+  --border: #1C2840;
+  --teal: #2EC4C4;
+  --teal-glow: rgba(46, 196, 196, 0.15);
+  --text: #EDF2F7;
+  --text-muted: #607394;
+  --text-faint: #3A4D6B;
+  --green-live: #22C55E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Sora', sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling for sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* Tooltip transition */
+.tooltip-fade {
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+/* Globe canvas fix */
+.globe-container canvas {
+  outline: none;
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-raised) 25%,
+    #141c2e 50%,
+    var(--bg-raised) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
